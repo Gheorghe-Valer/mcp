@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp
+  namespace: default
+  labels:
+    app: mcp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp
+  template:
+    metadata:
+      labels:
+        app: mcp
+    spec:
+      containers:
+      - name: mcp
+        image: gvaler/mcp-nest-server:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: PORT
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: NODE_ENV
+        - name: SAP_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: SAP_BASE_URL
+        - name: SAP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mcp-secrets
+              key: SAP_USERNAME
+        - name: SAP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mcp-secrets
+              key: SAP_PASSWORD
+        - name: SAP_CLIENT
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: SAP_CLIENT
+        - name: SAP_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: SAP_TIMEOUT
+        - name: SAP_VALIDATE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: SAP_VALIDATE_SSL
+        - name: SAP_ENABLE_CSRF
+          valueFrom:
+            configMapKeyRef:
+              name: mcp-config
+              key: SAP_ENABLE_CSRF
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      restartPolicy: Always

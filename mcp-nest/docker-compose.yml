@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mcp-nest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: gvaler/mcp-nest-server:latest
+    container_name: mcp-nest-server
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # SAP Configuration - Override in production
+      - SAP_BASE_URL=${SAP_BASE_URL:-http://s4h24.sap4practice.com:8024/sap/opu/odata/sap/}
+      - SAP_USERNAME=${SAP_USERNAME:-GVALER}
+      - SAP_PASSWORD=${SAP_PASSWORD:-Unisys.2019}
+      - SAP_CLIENT=${SAP_CLIENT:-100}
+      - SAP_TIMEOUT=${SAP_TIMEOUT:-30000}
+      - SAP_VALIDATE_SSL=${SAP_VALIDATE_SSL:-false}
+      - SAP_ENABLE_CSRF=${SAP_ENABLE_CSRF:-false}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (res) => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
