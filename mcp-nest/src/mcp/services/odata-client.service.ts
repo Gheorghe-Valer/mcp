@@ -8,6 +8,7 @@ import {
   ODataMetadata,
   ODataServiceList,
   ConnectionInfo,
+  AuthType,
 } from "../types/odata.types";
 
 @Injectable()
@@ -315,6 +316,7 @@ export class ODataClientService {
       timeout: this.config.timeout,
       enableCSRF: this.config.enableCSRF,
       hasCSRFToken: !!this.csrfToken,
+      authType: AuthType.BASIC,
       lastConnected: this.connected ? new Date() : undefined,
     };
   }

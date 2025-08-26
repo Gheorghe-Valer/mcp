@@ -3,7 +3,12 @@ import { ConfigModule } from "@nestjs/config";
 import { McpModule as NestMcpModule } from "@nestjs-mcp/server";
 import { McpResolver } from "./mcp.resolver";
 import { ODataResolver } from "./resolvers/odata.resolver";
+import { MultiODataResolver } from "./resolvers/multi-odata.resolver";
 import { ODataClientService } from "./services/odata-client.service";
+import { OAuth2Service } from "./services/oauth.service";
+import { MultiODataClientService } from "./services/multi-odata-client.service";
+import { MetadataDiscoveryService } from "./services/metadata-discovery.service";
+import { ODataJsonRpcBridgeService } from "./services/odata-jsonrpc-bridge.service";
 
 @Module({
   imports: [
@@ -21,7 +26,23 @@ import { ODataClientService } from "./services/odata-client.service";
       },
     }),
   ],
-  providers: [McpResolver, ODataResolver, ODataClientService],
-  exports: [NestMcpModule, ODataClientService],
+  providers: [
+    McpResolver, 
+    ODataResolver,
+    MultiODataResolver,
+    ODataClientService,
+    OAuth2Service,
+    MultiODataClientService,
+    MetadataDiscoveryService,
+    ODataJsonRpcBridgeService,
+  ],
+  exports: [
+    NestMcpModule, 
+    ODataClientService,
+    OAuth2Service,
+    MultiODataClientService,
+    MetadataDiscoveryService,
+    ODataJsonRpcBridgeService,
+  ],
 })
 export class McpServerModule {}

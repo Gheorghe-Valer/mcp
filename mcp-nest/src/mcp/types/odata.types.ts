@@ -12,6 +12,35 @@ export const SAPODataConfigSchema = z.object({
 
 export type SAPODataConfig = z.infer<typeof SAPODataConfigSchema>;
 
+export enum AuthType {
+  BASIC = 'basic',
+  OAUTH2 = 'oauth2',
+}
+
+export interface OAuth2Config {
+  tokenUrl: string;
+  clientId: string;
+  clientSecret: string;
+  scope?: string;
+}
+
+export interface ODataSystemConfig {
+  id: string;
+  name: string;
+  description?: string;
+  baseUrl: string;
+  authType: AuthType;
+  timeout?: number;
+  validateSSL?: boolean;
+  enableCSRF?: boolean;
+  basicAuth?: {
+    username: string;
+    password: string;
+    client?: string;
+  };
+  oauth2?: OAuth2Config;
+}
+
 export interface ODataQueryOptions {
   select?: string[];
   filter?: string;
@@ -74,10 +103,26 @@ export interface ODataServiceList {
 export interface ConnectionInfo {
   connected: boolean;
   baseUrl: string;
-  username: string;
+  username?: string;
   client?: string;
   timeout: number;
   enableCSRF: boolean;
   hasCSRFToken: boolean;
+  authType: AuthType;
   lastConnected?: Date;
+}
+
+export interface JsonRpcTool {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: string;
+    properties: Record<string, any>;
+    required?: string[];
+  };
+}
+
+export interface ODataToJsonRpcMapping {
+  systemId: string;
+  tools: JsonRpcTool[];
 }
