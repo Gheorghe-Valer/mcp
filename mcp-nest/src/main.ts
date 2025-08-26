@@ -30,7 +30,7 @@ async function bootstrap() {
   
   // Enable CORS for cross-origin requests from Claude Chat
   app.enableCors({
-    origin: ['https://claude.ai', 'https://chat.claude.ai', 'http://localhost:*', 'https://localhost:*'],
+    origin: ['https://claude.ai', 'https://chat.claude.ai', 'http://localhost:*', 'https://localhost:*', 'https://n8n.open-hand.org'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,

@@ -1,18 +1,18 @@
 import { Controller, Post, Body, Get } from '@nestjs/common';
-import { MultiODataClientService } from './mcp/services/multi-odata-client.service';
-import { MetadataDiscoveryService } from './mcp/services/metadata-discovery.service';
+import { SystemConfigService } from './system/services/system-config.service';
+import { UniversalSystemClientService } from './system/services/universal-system-client.service';
 
 @Controller('test-tools')
 export class TestToolsController {
   constructor(
-    private multiODataClient: MultiODataClientService,
-    private metadataDiscovery: MetadataDiscoveryService,
+    private systemConfig: SystemConfigService,
+    private systemClient: UniversalSystemClientService,
   ) {}
 
   @Get('list-systems')
   async listSystems() {
     try {
-      const systems = this.multiODataClient.getAllSystems();
+      const systems = this.systemConfig.getAllSystems();
       
       return {
         success: true,
@@ -22,7 +22,8 @@ export class TestToolsController {
           description: system.description,
           baseUrl: system.baseUrl,
           authType: system.authType,
-          connected: this.multiODataClient.getConnectionInfo(system.id)?.connected || false,
+          type: system.type,
+          connected: this.systemClient.getConnectionInfo(system.id)?.connected || false,
         })),
         total: systems.length,
       };
@@ -36,97 +37,138 @@ export class TestToolsController {
     }
   }
 
-  @Post('connect-system')
+  @Post('system-connect')
   async connectSystem(@Body() body: { systemId: string }) {
     try {
-      const connected = await this.multiODataClient.connect(body.systemId);
-      const connectionInfo = this.multiODataClient.getConnectionInfo(body.systemId);
-      
+      const systemConfig = this.systemConfig.getSystem(body.systemId);
+      if (!systemConfig) {
+        return {
+          success: false,
+          error: `System ${body.systemId} not found`,
+        };
+      }
+
+      const connected = await this.systemClient.connect(systemConfig);
+      const connectionInfo = this.systemClient.getConnectionInfo(body.systemId);
+
       return {
-        success: connected,
+        success: true,
+        systemId: body.systemId,
+        systemName: systemConfig.name,
+        connected,
         connectionInfo,
-        message: connected 
-          ? `Successfully connected to OData system: ${body.systemId}`
-          : `Failed to connect to OData system: ${body.systemId}`,
       };
     } catch (error: any) {
       return {
         success: false,
         error: error.message,
-        message: `Connection failed: ${error.message}`,
       };
     }
   }
 
-  @Post('get-metadata')
-  async getMetadata(@Body() body: { systemId: string; includeRaw?: boolean }) {
+  @Post('system-get-services')
+  async getSystemServices(@Body() body: { systemId: string }) {
     try {
-      const metadata = await this.metadataDiscovery.discoverSystemMetadata(body.systemId);
-      
-      const result = body.includeRaw 
-        ? metadata 
-        : this.metadataDiscovery.formatMetadataForMcp(metadata);
+      const systemConfig = this.systemConfig.getSystem(body.systemId);
+      if (!systemConfig) {
+        return {
+          success: false,
+          error: `System ${body.systemId} not found`,
+        };
+      }
+
+      const services = await this.systemClient.discoverServices(systemConfig);
 
       return {
         success: true,
-        data: result,
+        systemId: body.systemId,
+        systemName: systemConfig.name,
+        services: services.map(service => ({
+          id: service.id,
+          name: service.name,
+          title: service.title,
+          description: service.description,
+          version: service.version,
+          url: service.url,
+        })),
+        total: services.length,
       };
     } catch (error: any) {
       return {
         success: false,
         error: error.message,
-        message: `Failed to retrieve metadata for system: ${body.systemId}`,
+        services: [],
+        total: 0,
       };
     }
   }
 
-  @Post('query-entity')
-  async queryEntity(@Body() body: {
-    systemId: string;
-    entitySetName: string;
-    select?: string[];
-    filter?: string;
-    orderby?: string;
-    top?: number;
-    skip?: number;
-    expand?: string[];
-  }) {
+  @Post('odata-service-info')
+  async getServiceInfo(@Body() body: { systemId: string; serviceUrl: string; includeMetadata?: boolean }) {
     try {
-      const result = await this.multiODataClient.queryEntitySet(body.systemId, body.entitySetName, {
-        select: body.select,
-        filter: body.filter,
-        orderby: body.orderby,
-        top: body.top,
-        skip: body.skip,
-        expand: body.expand,
-      });
+      const systemConfig = this.systemConfig.getSystem(body.systemId);
+      if (!systemConfig) {
+        return {
+          success: false,
+          error: `System ${body.systemId} not found`,
+        };
+      }
 
-      const responseData = result.d?.results || result.d || result;
-      const count = Array.isArray(responseData) ? responseData.length : 1;
+      const service = await this.systemClient.getServiceMetadata(systemConfig, body.serviceUrl);
+      const metadata = service.metadata;
 
-      return {
+      const result = {
         success: true,
-        data: responseData,
-        recordsReturned: count,
+        systemId: body.systemId,
+        systemName: systemConfig.name,
+        serviceUrl: body.serviceUrl,
         metadata: {
-          systemId: body.systemId,
-          entitySetName: body.entitySetName,
-          queryOptions: {
-            select: body.select,
-            filter: body.filter,
-            orderby: body.orderby,
-            top: body.top,
-            skip: body.skip,
-            expand: body.expand,
-          },
-          timestamp: new Date().toISOString(),
+          entitiesCount: metadata?.entities?.length || 0,
+          entitySetsCount: metadata?.entitySets?.length || 0,
+          functionsCount: metadata?.functions?.length || 0,
+          actionsCount: metadata?.actions?.length || 0,
+          version: metadata?.version,
         },
+        entities: metadata?.entities?.map((entity: any) => ({
+          name: entity.name,
+          namespace: entity.namespace,
+          keyProperties: entity.keyProperties || [],
+          propertiesCount: entity.properties?.length || 0,
+          navigationPropertiesCount: entity.navigationProperties?.length || 0,
+        })) || [],
+        entitySets: metadata?.entitySets?.map((entitySet: any) => ({
+          name: entitySet.name,
+          entityType: entitySet.entityType,
+          capabilities: {
+            creatable: entitySet.creatable !== false,
+            updatable: entitySet.updatable !== false,
+            deletable: entitySet.deletable !== false,
+            searchable: entitySet.searchable === true,
+            countable: entitySet.countable !== false,
+          },
+        })) || [],
+        functions: metadata?.functions?.map((func: any) => ({
+          name: func.name,
+          returnType: func.returnType,
+          parametersCount: func.parameters?.length || 0,
+          httpMethod: func.httpMethod,
+        })) || [],
+        actions: metadata?.actions?.map((action: any) => ({
+          name: action.name,
+          returnType: action.returnType,
+          parametersCount: action.parameters?.length || 0,
+        })) || [],
       };
+
+      if (body.includeMetadata) {
+        (result as any).rawMetadata = metadata?.raw;
+      }
+
+      return result;
     } catch (error: any) {
       return {
         success: false,
         error: error.message,
-        message: `Failed to query ${body.entitySetName} from system ${body.systemId}: ${error.message}`,
       };
     }
   }

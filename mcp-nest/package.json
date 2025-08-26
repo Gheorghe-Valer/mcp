@@ -28,6 +28,7 @@
     "axios": "^1.11.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "xmldom": "^0.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

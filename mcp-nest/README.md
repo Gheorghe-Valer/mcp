@@ -1,98 +1,417 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Universal OData MCP Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A powerful Model Context Protocol (MCP) server that provides dynamic access to OData services with multiple authentication methods. Built with NestJS and TypeScript, this server automatically discovers OData services, parses metadata, and generates tools for seamless interaction with any OData endpoint.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+### 🌐 Universal OData Support
+- **Multiple Authentication Types**: None, Basic Authentication, OAuth 2.0
+- **OData Version Support**: Automatic detection and handling of OData v2, v3, and v4
+- **System Types**: SAP On-Premise, SAP BTP, and Generic OData services
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 🔧 Dynamic Tool Generation
+- **Metadata-Driven**: Automatically generates tools based on OData service metadata
+- **Entity Operations**: Filter, Get, Create, Update, Delete, Search, Count for each entity set
+- **Function Imports**: Supports OData function imports and actions
+- **Flexible Naming**: Configurable tool naming with prefix/postfix patterns
 
-## Project setup
+### 🔐 Security & Authentication
+- **OAuth 2.0**: Full client credentials flow with automatic token management and caching
+- **Basic Authentication**: Username/password with optional SAP client support
+- **CSRF Protection**: Automatic CSRF token handling for SAP systems
+- **SSL/TLS**: Configurable SSL validation
 
-```bash
-$ npm install
-```
+### 📊 Advanced Query Features
+- **OData Query Options**: Full support for $filter, $select, $expand, $orderby, $top, $skip, $count, $search
+- **Response Enhancement**: Automatic pagination, count extraction, and data normalization
+- **Version Translation**: Automatic parameter translation between OData versions
 
-## Compile and run the project
+## Installation
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+## Configuration
+
+Configure your OData systems using environment variables. Create a `.env` file in the root directory:
+
+### Basic Configuration
+
+```env
+# Legacy SAP System (Basic Auth)
+SAP_BASE_URL=https://your-sap-system.com/sap/opu/odata
+SAP_USERNAME=your-username
+SAP_PASSWORD=your-password
+SAP_CLIENT=100
+SAP_VALIDATE_SSL=false
+SAP_ENABLE_CSRF=true
+
+# SAP BTP Catalog Service (OAuth 2.0)
+CATALOG_ODATA_URL=https://your-tenant.cfapps.region.hana.ondemand.com/catalog/api/v1
+CATALOG_OAUTH_TOKEN_URL=https://your-tenant.authentication.region.hana.ondemand.com/oauth/token
+CATALOG_OAUTH_CLIENT_ID=your-client-id
+CATALOG_OAUTH_CLIENT_SECRET=your-client-secret
+```
+
+### Multiple Systems Configuration
+
+You can configure multiple systems using numbered prefixes:
+
+```env
+# System 1 - Northwind OData Service
+SYSTEM1_NAME=Northwind Demo
+SYSTEM1_DESCRIPTION=Public Northwind OData demonstration service
+SYSTEM1_TYPE=generic_odata
+SYSTEM1_BASE_URL=https://services.odata.org/V4/Northwind/Northwind.svc
+SYSTEM1_AUTH_TYPE=none
+
+# System 2 - SAP Business Partner API
+SYSTEM2_NAME=Business Partner API
+SYSTEM2_TYPE=sap_onpremise
+SYSTEM2_BASE_URL=https://my-sap-system.com/sap/opu/odata/sap/API_BUSINESS_PARTNER
+SYSTEM2_AUTH_TYPE=basic
+SYSTEM2_USERNAME=developer
+SYSTEM2_PASSWORD=your-password
+SYSTEM2_CLIENT=100
+SYSTEM2_ENABLE_CSRF=true
+
+# System 3 - Custom OAuth Service
+SYSTEM3_NAME=Custom API
+SYSTEM3_TYPE=generic_odata
+SYSTEM3_BASE_URL=https://api.example.com/odata
+SYSTEM3_AUTH_TYPE=oauth2
+SYSTEM3_OAUTH_TOKEN_URL=https://auth.example.com/oauth/token
+SYSTEM3_OAUTH_CLIENT_ID=client-id
+SYSTEM3_OAUTH_CLIENT_SECRET=client-secret
+SYSTEM3_OAUTH_SCOPE=api.read
+```
+
+### Named System Prefixes
+
+You can also use descriptive prefixes:
+
+```env
+# Northwind Demo Service
+NORTHWIND_NAME=Northwind Demo
+NORTHWIND_BASE_URL=https://services.odata.org/V4/Northwind/Northwind.svc
+NORTHWIND_TYPE=generic_odata
+NORTHWIND_AUTH_TYPE=none
+
+# Demo Service
+DEMO_NAME=Demo Service
+DEMO_BASE_URL=https://demo.example.com/odata
+DEMO_AUTH_TYPE=basic
+DEMO_USERNAME=demo
+DEMO_PASSWORD=demo123
+```
+
+## Running the Application
 
 ```bash
-# unit tests
-$ npm run test
+# Development mode with hot reload
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
+# Production mode
+npm run start:prod
 
-# test coverage
-$ npm run test:cov
+# Build the application
+npm run build
 ```
 
-## Deployment
+The MCP server will start and automatically:
+1. Load all configured systems from environment variables
+2. Attempt to connect to available systems
+3. Register MCP tools for system management
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Available MCP Tools
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### System Management Tools
+
+#### `system_connect`
+Connect to a configured system and test connectivity.
+
+```json
+{
+  "systemId": "northwind"
+}
+```
+
+#### `system_get_services` 
+Discover available OData services in a connected system.
+
+```json
+{
+  "systemId": "btp-catalog"
+}
+```
+
+#### `odata_service_info`
+Get detailed information about a specific OData service, including metadata, entities, and available operations.
+
+```json
+{
+  "systemId": "northwind", 
+  "serviceId": "https://services.odata.org/V4/Northwind/Northwind.svc",
+  "includeMetadata": true
+}
+```
+
+### Dynamic Entity Tools
+
+Once you retrieve service information, the server automatically generates entity-specific tools:
+
+#### Filter/List Entities
+```json
+// Tool: filter_Products_for_NW
+{
+  "$filter": "UnitPrice gt 20",
+  "$select": ["ProductName", "UnitPrice", "CategoryID"],
+  "$orderby": "ProductName asc",
+  "$top": 10
+}
+```
+
+#### Get Single Entity  
+```json
+// Tool: get_Product_for_NW
+{
+  "ProductID": 1,
+  "$select": ["ProductName", "UnitPrice"],
+  "$expand": ["Category"]
+}
+```
+
+#### Count Entities
+```json  
+// Tool: count_Products_for_NW
+{
+  "$filter": "Discontinued eq false"
+}
+```
+
+#### Search Entities
+```json
+// Tool: search_Products_for_NW  
+{
+  "search": "dairy",
+  "$top": 5
+}
+```
+
+#### Create Entity
+```json
+// Tool: create_Product_for_NW
+{
+  "ProductName": "New Product",
+  "UnitPrice": 25.99,
+  "CategoryID": 1,
+  "Discontinued": false
+}
+```
+
+#### Update Entity
+```json
+// Tool: update_Product_for_NW  
+{
+  "ProductID": 1,
+  "UnitPrice": 29.99,
+  "Discontinued": false
+}
+```
+
+#### Delete Entity
+```json
+// Tool: delete_Product_for_NW
+{
+  "ProductID": 1
+}
+```
+
+## System Types and Authentication
+
+### Generic OData (`generic_odata`)
+For any standard OData service. Supports anonymous access and basic authentication.
+
+### SAP On-Premise (`sap_onpremise`)  
+Optimized for SAP Gateway services with:
+- SAP client number support
+- CSRF token handling
+- Service catalog discovery via `/sap/bc/rest/backends/catalog/services`
+
+### SAP BTP (`btp`)
+For SAP Business Technology Platform services with:
+- OAuth 2.0 client credentials flow
+- Automatic token refresh
+- BTP-specific service discovery patterns
+
+## Authentication Methods
+
+### None (`auth_type: none`)
+For public APIs or services behind a gateway:
+```env
+SYSTEM1_AUTH_TYPE=none
+```
+
+### Basic Authentication (`auth_type: basic`)
+Username and password authentication:
+```env  
+SYSTEM1_AUTH_TYPE=basic
+SYSTEM1_USERNAME=your-username
+SYSTEM1_PASSWORD=your-password
+SYSTEM1_CLIENT=100  # Optional SAP client
+```
+
+### OAuth 2.0 (`auth_type: oauth2`)
+Client credentials flow with automatic token management:
+```env
+SYSTEM1_AUTH_TYPE=oauth2
+SYSTEM1_OAUTH_TOKEN_URL=https://auth.example.com/oauth/token
+SYSTEM1_OAUTH_CLIENT_ID=your-client-id  
+SYSTEM1_OAUTH_CLIENT_SECRET=your-client-secret
+SYSTEM1_OAUTH_SCOPE=optional-scope
+```
+
+## Advanced Configuration
+
+### Custom Headers
+Add custom HTTP headers to requests:
+```env
+SYSTEM1_CUSTOM_HEADERS={"X-API-Key": "your-key", "Custom-Header": "value"}
+# Or simple format:  
+SYSTEM1_CUSTOM_HEADERS=X-API-Key=your-key,Custom-Header=value
+```
+
+### SSL Configuration
+```env
+SYSTEM1_VALIDATE_SSL=false  # Disable SSL certificate validation
+```
+
+### Timeouts
+```env
+SYSTEM1_TIMEOUT=60000  # Request timeout in milliseconds
+```
+
+### Service Discovery
+```env
+SYSTEM1_DISCOVERY_URL=/custom/catalog/endpoint  # Custom discovery endpoint
+```
+
+## Tool Naming Configuration
+
+The server generates tool names using configurable patterns:
+
+- **Default**: `operation_EntitySet_for_ServiceId` (e.g., `filter_Products_for_NW`)
+- **Shortened**: Uses abbreviated operation names (`upd` vs `update`, `del` vs `delete`)
+- **Service ID**: Automatically extracted from service URLs for concise naming
+
+## Error Handling
+
+The server provides comprehensive error handling:
+
+- **Connection Failures**: Clear error messages for connectivity issues
+- **Authentication Errors**: Specific guidance for auth problems  
+- **CSRF Errors**: Automatic token refresh and retry
+- **Metadata Errors**: Detailed parsing error information
+- **Query Errors**: OData-specific error translation
+
+## Development
+
+### Project Structure
+```
+src/
+├── app.module.ts              # Main application module
+├── system/                    # System management module  
+│   ├── services/
+│   │   ├── system-config.service.ts      # Environment configuration
+│   │   ├── universal-system-client.service.ts  # Universal OData client
+│   │   ├── metadata-parser.service.ts     # OData metadata parser
+│   │   └── tool-generator.service.ts      # Dynamic tool generation
+│   ├── resolvers/
+│   │   └── system.resolver.ts             # MCP tools implementation
+│   └── types/
+│       └── system.types.ts                # Type definitions
+├── mcp/                       # MCP server module
+│   └── services/
+│       └── oauth.service.ts               # OAuth 2.0 service
+└── test-tools.controller.ts   # HTTP test endpoints
+```
+
+### Testing
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Unit tests
+npm run test
+
+# E2E tests  
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### HTTP Test Endpoints
 
-## Resources
+For debugging, the server provides HTTP endpoints that mirror the MCP tools:
 
-Check out a few resources that may come in handy when working with NestJS:
+- `POST /test-tools/system-connect` - Test system connections
+- `POST /test-tools/system-get-services` - Test service discovery  
+- `POST /test-tools/odata-service-info` - Test metadata parsing
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Troubleshooting
 
-## Support
+### Common Issues
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+**Systems not loading:**
+- Check environment variable names and formats
+- Ensure required variables are set (BASE_URL, credentials)
+- Check application logs for configuration errors
 
-## Stay in touch
+**Connection failures:**
+- Verify URLs and network connectivity
+- Check SSL settings (`VALIDATE_SSL=false` for self-signed certificates)
+- Verify authentication credentials
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**OAuth errors:**  
+- Confirm client ID and secret are correct
+- Check token URL is accessible
+- Verify required scopes are granted
+
+**CSRF token failures:**
+- Enable CSRF for SAP systems (`ENABLE_CSRF=true`)
+- Check system supports CSRF token endpoint
+- Verify proper authentication before CSRF token fetch
+
+### Debug Logging
+
+Set environment variable for detailed logging:
+```env
+LOG_LEVEL=debug
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality  
+5. Run the test suite
+6. Submit a pull request
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is MIT licensed.
+
+## Support
+
+For issues and questions:
+- Check the troubleshooting section above
+- Review application logs for detailed error messages
+- Create an issue in the repository with:
+  - System configuration (without credentials)
+  - Error messages and logs
+  - Steps to reproduce
+
+---
+
+🚀 **Ready to connect to any OData service with dynamic tool generation!**
