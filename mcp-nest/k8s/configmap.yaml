@@ -2,7 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mcp-config
-  namespace: default
 data:
   PORT: "3000"
   NODE_ENV: "production"
@@ -16,7 +15,6 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: mcp-secrets
-  namespace: default
 type: Opaque
 stringData:
   SAP_USERNAME: "GVALER"
