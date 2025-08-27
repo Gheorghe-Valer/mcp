@@ -15,6 +15,21 @@ data:
   SAP_TIMEOUT: "30000"
   SAP_VALIDATE_SSL: "false"
   SAP_ENABLE_CSRF: "false"
+  
+  # BTP Catalog Service Configuration
+  CATALOG_ODATA_URL: "https://your-tenant.cfapps.region.hana.ondemand.com/catalog/api/v1"
+  CATALOG_OAUTH_TOKEN_URL: "https://your-tenant.authentication.region.hana.ondemand.com/oauth/token"
+  
+  # System Configuration Examples
+  SYSTEM1_NAME: "Northwind Demo"
+  SYSTEM1_TYPE: "generic_odata" 
+  SYSTEM1_BASE_URL: "https://services.odata.org/V4/Northwind/Northwind.svc"
+  SYSTEM1_AUTH_TYPE: "none"
+  
+  SYSTEM2_NAME: "BTP Catalog"
+  SYSTEM2_TYPE: "btp"
+  SYSTEM2_BASE_URL: "https://your-tenant.cfapps.region.hana.ondemand.com/catalog/api/v1"
+  SYSTEM2_AUTH_TYPE: "oauth2"
 ---
 apiVersion: v1
 kind: Secret
@@ -29,3 +44,11 @@ type: Opaque
 stringData:
   SAP_USERNAME: "GVALER"
   SAP_PASSWORD: "Unisys.2019"
+  
+  # BTP OAuth Credentials
+  CATALOG_OAUTH_CLIENT_ID: "your-btp-client-id"
+  CATALOG_OAUTH_CLIENT_SECRET: "your-btp-client-secret"
+  
+  # System-specific OAuth credentials
+  SYSTEM2_OAUTH_CLIENT_ID: "your-btp-client-id"
+  SYSTEM2_OAUTH_CLIENT_SECRET: "your-btp-client-secret"

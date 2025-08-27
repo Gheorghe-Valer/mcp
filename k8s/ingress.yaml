@@ -20,7 +20,7 @@ metadata:
     nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type,Authorization,X-Requested-With,mcp-session-id"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     # Let's Encrypt SSL certificate (if cert-manager is installed)
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # MCP specific settings
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
