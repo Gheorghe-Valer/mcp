@@ -4,6 +4,10 @@ metadata:
   name: mcp-service
   labels:
     app: mcp
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: mcp-nest-k8s
+    meta.helm.sh/release-namespace: default
 spec:
   type: ClusterIP
   ports:

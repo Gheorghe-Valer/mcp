@@ -2,6 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mcp-config
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: mcp-nest-k8s
+    meta.helm.sh/release-namespace: default
 data:
   PORT: "3000"
   NODE_ENV: "production"
@@ -15,6 +20,11 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: mcp-secrets
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: mcp-nest-k8s
+    meta.helm.sh/release-namespace: default
 type: Opaque
 stringData:
   SAP_USERNAME: "GVALER"

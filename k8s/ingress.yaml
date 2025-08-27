@@ -2,7 +2,11 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: mcp-ingress
+  labels:
+    app.kubernetes.io/managed-by: Helm
   annotations:
+    meta.helm.sh/release-name: mcp-nest-k8s
+    meta.helm.sh/release-namespace: default
     # Rancher/RKE specific annotations
     kubernetes.io/ingress.class: "nginx"
     # Alternative for RKE2
