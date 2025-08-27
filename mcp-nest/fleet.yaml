@@ -1,0 +1,63 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: mcp-nest-server
+  namespace: fleet-default
+spec:
+  # Repository configuration
+  repo: https://github.com/your-org/mcp-nest-server
+  branch: main
+  paths:
+  - k8s/
+  
+  # Target clusters
+  targets:
+  - name: production
+    clusterSelector:
+      matchLabels:
+        env: production
+  - name: staging  
+    clusterSelector:
+      matchLabels:
+        env: staging
+  
+  # Deployment configuration
+  helm:
+    releaseName: mcp-nest-server
+    chart: ./helm/mcp-nest-server
+    values:
+      image:
+        repository: gvaler/mcp-nest-server
+        tag: latest
+        pullPolicy: Always
+      
+      service:
+        type: ClusterIP
+        port: 80
+        targetPort: 3000
+      
+      ingress:
+        enabled: true
+        className: nginx
+        annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
+        hosts:
+        - host: nest.open-hand.org
+          paths:
+          - path: /
+            pathType: Prefix
+      
+      resources:
+        requests:
+          memory: "256Mi"
+          cpu: "100m"
+        limits:
+          memory: "512Mi" 
+          cpu: "500m"
+      
+      env:
+        NODE_ENV: production
+        PORT: "3000"
+        SAP_TIMEOUT: "30000"
+        SAP_VALIDATE_SSL: "false"
+        SAP_ENABLE_CSRF: "false"

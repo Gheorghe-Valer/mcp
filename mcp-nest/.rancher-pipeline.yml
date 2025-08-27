@@ -1,0 +1,43 @@
+# Rancher Pipeline Configuration
+stages:
+  - name: "Build"
+    steps:
+    - runScriptConfig:
+        image: node:18-alpine
+        shellScript: |-
+          npm ci
+          npm run build
+          npm run test
+  
+  - name: "Build Image"
+    steps:
+    - publishImageConfig:
+        dockerfilePath: ./Dockerfile
+        buildContext: .
+        tag: gvaler/mcp-nest-server:${CICD_EXECUTION_SEQUENCE}
+        pushRemote: true
+        registry: index.docker.io
+  
+  - name: "Deploy to Staging"
+    steps:
+    - runScriptConfig:
+        image: alpine/helm:latest
+        shellScript: |-
+          echo "Deploying to staging environment..."
+          # Update image tag in staging values
+          sed -i "s|tag: latest|tag: ${CICD_EXECUTION_SEQUENCE}|" overlays/staging/values.yaml
+          
+  - name: "Deploy to Production"
+    when:
+      branch:
+        include: ["main"]
+    steps:
+    - runScriptConfig:
+        image: alpine/helm:latest  
+        shellScript: |-
+          echo "Deploying to production environment..."
+          # Update image tag in production values
+          sed -i "s|tag: latest|tag: ${CICD_EXECUTION_SEQUENCE}|" overlays/production/values.yaml
+
+timeout: 60
+notification: {}

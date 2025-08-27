@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: mcp-nest-server
+
+resources:
+- k8s/deployment.yaml
+- k8s/service.yaml
+- k8s/configmap.yaml
+- k8s/ingress.yaml
+
+# Environment-specific patches
+patchesStrategicMerge:
+- overlays/production/deployment-patch.yaml
+
+# Image transformation
+images:
+- name: gvaler/mcp-nest-server
+  newTag: latest
+
+# ConfigMap generation
+configMapGenerator:
+- name: mcp-config
+  literals:
+  - PORT=3000
+  - NODE_ENV=production
+  - SAP_TIMEOUT=30000
+  - SAP_VALIDATE_SSL=false
+  - SAP_ENABLE_CSRF=false
+  behavior: replace
+
+# Secret generation (will be overridden by Fleet)
+secretGenerator:
+- name: mcp-secrets
+  type: Opaque
+  literals:
+  - SAP_USERNAME=placeholder
+  - SAP_PASSWORD=placeholder
+  behavior: replace

@@ -3,9 +3,17 @@
     "allow": [
       "WebFetch(domain:github.com)",
       "Bash(curl:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(timeout 10s npm start)",
+      "Bash(node:*)",
+      "Read(/C:\\Users\\Gheorghe Valer\\Documents\\MCP\\odata_mcp_go\\internal\\mcp/**)",
+      "Read(/C:\\Users\\Gheorghe Valer\\Documents\\MCP\\odata_mcp_go\\cmd\\odata-mcp/**)",
+      "Read(/C:\\Users\\Gheorghe Valer\\Documents\\MCP\\odata_mcp_go\\internal\\bridge/**)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\Users\\Gheorghe Valer\\Documents\\MCP\\odata_mcp_go"
+    ]
   }
 }
