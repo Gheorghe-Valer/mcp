@@ -5,10 +5,10 @@ metadata:
   namespace: fleet-default
 spec:
   # Repository configuration
-  repo: https://github.com/your-org/mcp-nest-server
+  repo: https://github.com/Gheorghe-Valer/mcp.git
   branch: main
   paths:
-  - k8s/
+  - mcp-nest/k8s/
   
   # Target clusters
   targets:
@@ -16,48 +16,12 @@ spec:
     clusterSelector:
       matchLabels:
         env: production
-  - name: staging  
+        
+  # Environment-specific customizations
+  targetCustomizations:
+  - name: production
     clusterSelector:
       matchLabels:
-        env: staging
-  
-  # Deployment configuration
-  helm:
-    releaseName: mcp-nest-server
-    chart: ./helm/mcp-nest-server
-    values:
-      image:
-        repository: gvaler/mcp-nest-server
-        tag: latest
-        pullPolicy: Always
-      
-      service:
-        type: ClusterIP
-        port: 80
-        targetPort: 3000
-      
-      ingress:
-        enabled: true
-        className: nginx
-        annotations:
-          nginx.ingress.kubernetes.io/rewrite-target: /
-        hosts:
-        - host: nest.open-hand.org
-          paths:
-          - path: /
-            pathType: Prefix
-      
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "100m"
-        limits:
-          memory: "512Mi" 
-          cpu: "500m"
-      
-      env:
-        NODE_ENV: production
-        PORT: "3000"
-        SAP_TIMEOUT: "30000"
-        SAP_VALIDATE_SSL: "false"
-        SAP_ENABLE_CSRF: "false"
+        env: production
+    kustomize:
+      dir: mcp-nest/overlays/production
