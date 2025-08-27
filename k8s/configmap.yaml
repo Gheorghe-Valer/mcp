@@ -42,13 +42,10 @@ metadata:
     meta.helm.sh/release-namespace: default
 type: Opaque
 stringData:
-  SAP_USERNAME: "GVALER"
-  SAP_PASSWORD: "Unisys.2019"
+  SAP_USERNAME: "N8N"
+  SAP_PASSWORD: "Logali.2025"
   
   # BTP OAuth Credentials
-  CATALOG_OAUTH_CLIENT_ID: "your-btp-client-id"
-  CATALOG_OAUTH_CLIENT_SECRET: "your-btp-client-secret"
-  
-  # System-specific OAuth credentials
-  SYSTEM2_OAUTH_CLIENT_ID: "your-btp-client-id"
-  SYSTEM2_OAUTH_CLIENT_SECRET: "your-btp-client-secret"
+  CATALOG_OAUTH_CLIENT_ID: "sb-books-1cdae348trial-dev!t502754"
+  CATALOG_OAUTH_CLIENT_SECRET: "b7997a50-b0c6-49d9-8fee-c154d46907ba$0UwJWyleadS4haL5W8VJFl9qdQY4mitd6kyNnEhmdzA="
+
