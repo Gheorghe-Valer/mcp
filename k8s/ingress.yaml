@@ -11,8 +11,8 @@ metadata:
     kubernetes.io/ingress.class: "nginx"
     # Alternative for RKE2
     # ingressClassName: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
     # Enable CORS for MCP clients
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
@@ -29,10 +29,10 @@ metadata:
     # Preserve headers
     nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
 spec:
-  tls:
-  - hosts:
-    - nest.open-hand.org
-    secretName: mcp-tls
+  # tls:
+  # - hosts:
+  #   - nest.open-hand.org
+  #   secretName: mcp-tls
   rules:
   - host: nest.open-hand.org
     http:
