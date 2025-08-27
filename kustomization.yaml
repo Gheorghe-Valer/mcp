@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- k8s/deployment.yaml
+- k8s/service.yaml  
+- k8s/configmap.yaml
+- k8s/ingress.yaml
+
+# Image transformation
+images:
+- name: gvaler/mcp-nest-server
+  newTag: latest

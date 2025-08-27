@@ -8,7 +8,7 @@ spec:
   repo: https://github.com/Gheorghe-Valer/mcp.git
   branch: main
   paths:
-  - mcp-nest/k8s/
+  - k8s/
   
   # Target clusters
   targets:

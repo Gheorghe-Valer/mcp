@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-config
+data:
+  PORT: "3000"
+  NODE_ENV: "production"
+  SAP_BASE_URL: "http://s4h24.sap4practice.com:8024/sap/opu/odata/sap/"
+  SAP_CLIENT: "100"
+  SAP_TIMEOUT: "30000"
+  SAP_VALIDATE_SSL: "false"
+  SAP_ENABLE_CSRF: "false"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-secrets
+type: Opaque
+stringData:
+  SAP_USERNAME: "GVALER"
+  SAP_PASSWORD: "Unisys.2019"
