@@ -29,6 +29,7 @@ metadata:
     # Preserve headers
     nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
 spec:
+  ingressClassName: nginx
   # tls:
   # - hosts:
   #   - nest.open-hand.org
