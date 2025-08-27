@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: mcp
-        image: gvaler/mcp-nest-server:latest
+        image: gvaler/mcp:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
