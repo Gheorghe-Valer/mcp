@@ -1,0 +1,375 @@
+{
+  "name": "SAPUI5 MCP with AI Enhanced",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🚀 SAPUI5 to MCP Bridge\n\nThis workflow connects SAPUI5 applications to MCP tools with AI intelligence.\n\n**Flow:**\n1. SAPUI5/Manual → Process Input\n2. Connect to MCP → Get Services  \n3. AI Analysis → Tool Execution\n4. Format Response → Send to SAPUI5\n\n**Test:** Use Manual Test Trigger",
+        "height": 240,
+        "width": 320
+      },
+      "id": "workflow-note",
+      "name": "Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [20, 80]
+    },
+    {
+      "parameters": {
+        "manualTriggerParam": "{\n  \"query\": \"Show me products from Northwind\",\n  \"userId\": \"test_user\",\n  \"context\": {\n    \"module\": \"products\"\n  }\n}"
+      },
+      "id": "manual-trigger",
+      "name": "Manual Test",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [360, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sapui5-chat",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "SAPUI5 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [360, 320]
+    },
+    {
+      "parameters": {
+        "functionCode": "const userQuery = $json.query || '';\nconst userId = $json.userId || 'anonymous';\nconst context = $json.context || {};\nconst workflowId = `sapui5-${Date.now()}`;\n\nconsole.log('Processing request:', { userQuery, userId });\n\nreturn {\n  json: {\n    userQuery: userQuery.trim(),\n    userId,\n    context,\n    workflowId,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "process-input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [580, 260]
+    },
+    {
+      "parameters": {
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonParameters": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_connect\"\n  }\n}"
+      },
+      "id": "connect-systems",
+      "name": "Connect Systems",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [800, 260]
+    },
+    {
+      "parameters": {
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonParameters": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\"\n}"
+      },
+      "id": "list-tools",
+      "name": "List MCP Tools",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1020, 260]
+    },
+    {
+      "parameters": {
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonParameters": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_get_services\"\n  }\n}"
+      },
+      "id": "get-services",
+      "name": "Get Services",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1240, 260]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Analyze user query and decide action\nconst userQuery = $node['Process Input'].json.userQuery.toLowerCase();\nconst availableTools = $node['List MCP Tools'].json.result?.tools || [];\nconst availableServices = $node['Get Services'].json.result?.content?.[0]?.text || '';\n\nconsole.log('User query:', userQuery);\nconsole.log('Available tools:', availableTools.length);\n\n// Simple AI logic - determine what to do\nlet action = 'provide_guidance';\nlet toolName = null;\nlet explanation = '';\n\nif (userQuery.includes('product') || userQuery.includes('item')) {\n  action = 'query_data';\n  toolName = 'system_query_entity';\n  explanation = 'I\\'ll query product data for you';\n} else if (userQuery.includes('customer') || userQuery.includes('client')) {\n  action = 'query_data';\n  toolName = 'system_query_entity';\n  explanation = 'I\\'ll get customer information';\n} else if (userQuery.includes('service') || userQuery.includes('available') || userQuery.includes('what')) {\n  action = 'show_services';\n  explanation = 'I\\'ll show you the available OData services';\n}\n\nreturn {\n  json: {\n    action,\n    toolName,\n    explanation,\n    userQuery: $node['Process Input'].json.userQuery,\n    workflowId: $node['Process Input'].json.workflowId,\n    availableServices\n  }\n};"
+      },
+      "id": "analyze-query",
+      "name": "Analyze Query",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1460, 260]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.action}}",
+              "operation": "equal",
+              "value2": "query_data"
+            }
+          ]
+        }
+      },
+      "id": "route-action",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1680, 260]
+    },
+    {
+      "parameters": {
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "jsonParameters": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 4,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_query_entity\",\n    \"arguments\": {\n      \"systemName\": \"Northwind Demo\",\n      \"entitySet\": \"Products\",\n      \"top\": 5\n    }\n  }\n}"
+      },
+      "id": "query-data",
+      "name": "Query Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1900, 160]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format query results\nconst queryResult = $json.result?.content?.[0]?.text || 'No data found';\nconst analysis = $node['Analyze Query'].json;\n\nconst response = `${analysis.explanation}:\\n\\n${queryResult}`;\n\nreturn {\n  json: {\n    formattedResponse: response,\n    type: 'tool_result',\n    originalQuery: analysis.userQuery,\n    workflowId: analysis.workflowId\n  }\n};"
+      },
+      "id": "format-query-result",
+      "name": "Format Query Result",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2120, 160]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Provide service information\nconst analysis = $node['Analyze Query'].json;\nconst services = analysis.availableServices;\n\nconst response = `Here are the available OData services:\\n\\n${services}\\n\\nYou can ask me to:\\n• Show products data\\n• Get customer information\\n• Query specific entities`;\n\nreturn {\n  json: {\n    formattedResponse: response,\n    type: 'guidance',\n    originalQuery: analysis.userQuery,\n    workflowId: analysis.workflowId\n  }\n};"
+      },
+      "id": "provide-guidance",
+      "name": "Provide Guidance",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1900, 360]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Final response formatter\nlet responseText = $json.formattedResponse || 'No response available';\nlet responseType = $json.type || 'info';\n\nconst response = {\n  success: true,\n  data: {\n    response: responseText,\n    type: responseType,\n    query: $json.originalQuery,\n    confidence: 0.85,\n    suggestions: [\n      'Show me more products',\n      'Get customer data',\n      'What other services are available?'\n    ]\n  },\n  metadata: {\n    workflowId: $json.workflowId,\n    timestamp: new Date().toISOString(),\n    source: 'n8n-enhanced-workflow'\n  },\n  status: {\n    code: 200,\n    message: 'Request processed successfully'\n  }\n};\n\nreturn { json: response };"
+      },
+      "id": "format-final-response",
+      "name": "Format Final Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2340, 260]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "name": "Access-Control-Allow-Methods",
+              "value": "POST, OPTIONS"
+            },
+            {
+              "name": "Access-Control-Allow-Headers",
+              "value": "Content-Type, Authorization"
+            }
+          ]
+        }
+      },
+      "id": "webhook-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2560, 260]
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 Simple AI Logic\n\n**Query Analysis:**\n- \"product/item\" → Query Products\n- \"customer/client\" → Query Customers  \n- \"service/available\" → Show Services\n- Other → Provide Guidance\n\n**Next Enhancement:**\nAdd real AI (Gemini) if LangChain nodes are available",
+        "height": 200,
+        "width": 300
+      },
+      "id": "ai-logic-note",
+      "name": "AI Logic",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1460, 400]
+    }
+  ],
+  "connections": {
+    "Manual Test": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAPUI5 Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "Connect Systems",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Connect Systems": {
+      "main": [
+        [
+          {
+            "node": "List MCP Tools",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List MCP Tools": {
+      "main": [
+        [
+          {
+            "node": "Get Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Services": {
+      "main": [
+        [
+          {
+            "node": "Analyze Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Query": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Query Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Provide Guidance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Data": {
+      "main": [
+        [
+          {
+            "node": "Format Query Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Query Result": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Provide Guidance": {
+      "main": [
+        [
+          {
+            "node": "Format Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

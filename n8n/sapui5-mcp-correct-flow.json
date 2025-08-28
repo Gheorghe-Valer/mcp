@@ -1,0 +1,380 @@
+{
+  "name": "SAPUI5 MCP AI Agent Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🚀 SAPUI5 to MCP Bridge with AI Agent\n\n**Correct Flow:**\nSAPUI5 → Process → AI Agent (with MCP Tools) → Format → Response\n\n**AI Agent has:**\n- Gemini 1.5 Flash model\n- MCP tools connected via ai_tool connections\n- Natural language processing\n\n**Test:**\nUse Manual Trigger or Chat Trigger\n\n**Webhook:** /sapui5-chat",
+        "height": 260,
+        "width": 350
+      },
+      "id": "workflow-overview",
+      "name": "Workflow Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [20, 80]
+    },
+    {
+      "parameters": {
+        "manualTriggerParam": "{\n  \"query\": \"What OData services are available?\",\n  \"userId\": \"test_user\",\n  \"sessionId\": \"manual-test-123\"\n}"
+      },
+      "id": "manual-trigger",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [400, 100]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sapui5-chat",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "SAPUI5 Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [400, 200]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [400, 300],
+      "id": "chat-trigger",
+      "name": "Chat Trigger",
+      "webhookId": "sapui5-chat-webhook"
+    },
+    {
+      "parameters": {
+        "content": "## 📥 Input Processing\n\n**Three Entry Points:**\n1. Manual Test - for development testing\n2. SAPUI5 Webhook - for SAPUI5 app integration  \n3. Chat Trigger - for conversational interface\n\n**All converge to Process Input node**\n\n**Expected Input:**\n- query: Natural language query\n- userId: User identifier\n- sessionId: Session tracking",
+        "height": 220,
+        "width": 320
+      },
+      "id": "input-explanation",
+      "name": "Input Processing",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [400, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process input from any source (manual, webhook, chat)\nconst userQuery = $json.query || $json.chatInput || $json.input || '';\nconst userId = $json.userId || 'anonymous';\nconst sessionId = $json.sessionId || `session-${Date.now()}`;\nconst context = $json.context || {};\nconst workflowId = `sapui5-mcp-${Date.now()}`;\n\nconsole.log('Processing input:', { userQuery, userId, sessionId });\n\n// Format for AI Agent\nreturn {\n  json: {\n    input: userQuery.trim(), // AI Agent expects 'input' field\n    userQuery: userQuery.trim(),\n    userId,\n    sessionId,\n    context,\n    workflowId,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "process-input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [640, 200]
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 AI Agent Core\n\n**AI Agent receives:**\n- Natural language query via 'input' field\n- Connected to Gemini 1.5 Flash model\n- Has MCP tools available via ai_tool connections\n\n**AI Agent decides:**\n- Which MCP tool to use\n- What arguments to pass\n- How to interpret results\n\n**MCP Tools Available:**\n- system_connect\n- system_get_services\n- system_query_entity\n- And more...",
+        "height": 280,
+        "width": 350
+      },
+      "id": "ai-agent-explanation",
+      "name": "AI Agent Core",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [860, 80]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [860, 200],
+      "id": "ai-agent",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-002",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [860, 400],
+      "id": "gemini-model",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "gnTE7dKtpUnpMboI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 🔧 MCP Tools\n\n**These tools are connected to AI Agent via ai_tool connections:**\n\n1. **System Connect** - Connect to OData systems\n2. **Get Services** - List available OData services  \n3. **Query Entity** - Query specific entity data\n\n**AI Agent can:**\n- Choose which tool to use\n- Pass appropriate parameters\n- Chain multiple tools if needed",
+        "height": 240,
+        "width": 300
+      },
+      "id": "mcp-tools-explanation",
+      "name": "MCP Tools",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1240, 80]
+    },
+    {
+      "parameters": {
+        "name": "system_connect",
+        "description": "Connect to all configured OData systems. Use this first to establish connections.",
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": \"{{Math.floor(Math.random() * 1000)}}\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_connect\"\n  }\n}"
+      },
+      "id": "system-connect-tool",
+      "name": "System Connect Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1240, 180]
+    },
+    {
+      "parameters": {
+        "name": "system_get_services",
+        "description": "Get list of available OData services from all connected systems.",
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": \"{{Math.floor(Math.random() * 1000)}}\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_get_services\"\n  }\n}"
+      },
+      "id": "get-services-tool",
+      "name": "Get Services Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1240, 300]
+    },
+    {
+      "parameters": {
+        "name": "system_query_entity",
+        "description": "Query entity data from OData services. Parameters: systemName, entitySet, top (optional)",
+        "url": "https://nest.open-hand.org/mcp",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": \"{{Math.floor(Math.random() * 1000)}}\",\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"system_query_entity\",\n    \"arguments\": {\n      \"systemName\": \"{{$parameter.systemName || 'Northwind Demo'}}\",\n      \"entitySet\": \"{{$parameter.entitySet || 'Products'}}\",\n      \"top\": \"{{$parameter.top || 10}}\"\n    }\n  }\n}",
+        "placeholderDefinitions": {
+          "properties": [
+            {
+              "name": "systemName",
+              "description": "Name of the OData system to query"
+            },
+            {
+              "name": "entitySet",
+              "description": "Entity set name (e.g. Products, Customers)"
+            },
+            {
+              "name": "top",
+              "description": "Number of records to return"
+            }
+          ]
+        }
+      },
+      "id": "query-entity-tool",
+      "name": "Query Entity Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1240, 420]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format AI Agent response for SAPUI5\nlet responseText = '';\nlet responseType = 'ai_response';\nlet toolUsed = 'ai_agent';\n\n// Get the AI Agent output\nif ($json.output) {\n  responseText = $json.output;\n} else if ($json.text) {\n  responseText = $json.text;\n} else {\n  responseText = 'I encountered an issue processing your request. Please try again.';\n  responseType = 'error';\n}\n\n// Get original request data\nconst inputData = $node['Process Input'].json;\n\n// Create structured SAPUI5 response\nconst response = {\n  success: true,\n  data: {\n    response: responseText,\n    type: responseType,\n    query: inputData.userQuery,\n    confidence: 0.95,\n    toolUsed: toolUsed,\n    suggestions: [\n      'What other services are available?',\n      'Show me more details about this data',\n      'Can you filter this information?'\n    ]\n  },\n  metadata: {\n    workflowId: inputData.workflowId,\n    timestamp: new Date().toISOString(),\n    processingTime: Date.now() - parseInt(inputData.workflowId.split('-').pop()),\n    source: 'n8n-ai-agent-mcp-workflow'\n  },\n  status: {\n    code: 200,\n    message: 'Request processed successfully'\n  }\n};\n\nconsole.log('Final SAPUI5 response:', response);\n\nreturn { json: response };"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1480, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "responseHeaders": {
+          "entries": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "name": "Access-Control-Allow-Methods",
+              "value": "GET,POST,PUT,DELETE,OPTIONS"
+            },
+            {
+              "name": "Access-Control-Allow-Headers",
+              "value": "Content-Type,Authorization,X-Requested-With"
+            }
+          ]
+        }
+      },
+      "id": "webhook-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1700, 200]
+    },
+    {
+      "parameters": {
+        "content": "## 📤 Final Response\n\n**Format Response node:**\n- Takes AI Agent output\n- Formats for SAPUI5 consumption\n- Adds metadata and suggestions\n\n**Response Structure:**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"response\": \"AI formatted answer\",\n    \"type\": \"ai_response\",\n    \"suggestions\": [...]\n  },\n  \"metadata\": {...}\n}\n```\n\n**CORS headers included for browser access**",
+        "height": 280,
+        "width": 320
+      },
+      "id": "response-explanation",
+      "name": "Response Format",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1480, 320]
+    }
+  ],
+  "connections": {
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAPUI5 Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "System Connect Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Services Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Entity Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Send Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
